@@ -32,6 +32,7 @@ use clap::{App, Arg, AppSettings, SubCommand};
 use crateversion::CrateVersion;
 use std::fs::File;
 use std::io::prelude::Read;
+use std::path::PathBuf;
 
 // Start the logger
 #[cfg(feature="logger")]
@@ -60,7 +61,7 @@ fn main() {
                 "-p, --packages [PKG]...   'Crates to upgrade (defaults to all)'
                 -f, --force                'Force a reinstall of git/local packages'
                 -v, --verbose              'Verbose output'
-                -c, --cargo [DIR]          'Cargo home directory'
+                -c, --cargo [DIR]          'Path to Cargo home directory'
                 -d, --dry-run              'Do not perform actual upgrades'")
             .arg(Arg::from_usage(
                 "-e, --exclude [PKG]...    'Crates to exclude'")
@@ -76,9 +77,14 @@ fn main() {
             (Some(_), Some(_)) => panic!("fehler"),
         };
 
-        let ch = match search_cargo_data() {
-            Some(ch) => ch,
-            None => panic!("Could not find cargo home directory. Please set it manually with -c")
+        let home = match m.value_of("cargo") {
+            Some(val) => PathBuf::from(val),
+            None => {
+                match search_cargo_data() {
+                    Some(ch) => ch,
+                    None => panic!("Could not find cargo home directory. Please set it manually with -c")
+                }
+            },
         };
 
         let cfg = Config {
@@ -86,7 +92,7 @@ fn main() {
             force: m.is_present("force"),
             verbose: m.is_present("verbose"),
             mode: mode,
-            cpath: ch,
+            cpath: home,
         };
         debug!("{:?}", cfg);
         execute(&cfg);

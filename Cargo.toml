@@ -1,6 +1,6 @@
 [package]
 name = "cargo-install-upgrade"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["al <al@d>"]
 keywords = ["cargo", "subcommand", "install", "upgrade"]
 description = "Extends cargo to upgrade packages installed via 'cargo install'"
