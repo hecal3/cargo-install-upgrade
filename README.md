@@ -1,7 +1,7 @@
 # cargo-install-upgrade
 
-Convenience subcommand for Cargo.
-Updates all binaries installed by `cargo install` to the latest version.
+Updates all binaries installed by `cargo install` to the latest versions.
+The feature is left out of Cargo by design. This is just a small convenience wrapper.
 
 The old version will be kept as backup for the duration of the build. In case of build failure, it will roll back.
 
