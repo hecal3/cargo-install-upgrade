@@ -1,0 +1,25 @@
+[package]
+name = "cargo-install-upgrade"
+version = "0.1.3"
+authors = ["al <al@d>"]
+keywords = ["cargo", "subcommand", "install", "upgrade"]
+description = "Extends cargo to upgrade packages installed via 'cargo install'"
+#publish = false
+
+[[bin]]
+name = "cargo-install-upgrade"
+
+[dependencies]
+semver = "0.2.3"
+clap = "2.1.2"
+serde_json = "0.7.0"
+tempdir = "0.3"
+clippy = {version = "*", optional = true}
+log = { version = "*", optional = true }
+env_logger = {version = "*", optional = true }
+toml = { version = "0.1.28", default-features = false, features = ["serde"] }
+
+[features]
+default = []
+logger = ["log", "env_logger"]
+dev = ["logger", "clippy"]
