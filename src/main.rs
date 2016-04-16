@@ -33,6 +33,7 @@ use crateversion::CrateVersion;
 use std::fs::File;
 use std::io::prelude::Read;
 use std::path::PathBuf;
+use error::UpgradeError;
 
 // Start the logger
 #[cfg(feature="logger")]
@@ -101,7 +102,7 @@ fn main() {
 
 fn execute(cfg: Config) {
     info!("Searc for packages");
-    let mut installed: Vec<CrateVersion> = read_installed_packages(&cfg);
+    let mut installed: Vec<CrateVersion> = read_installed_packages(&cfg).unwrap();
     info!("Found packages: {:?}", installed);
 
     match cfg.mode {
@@ -138,61 +139,60 @@ fn execute(cfg: Config) {
     }
 }
 
-fn read_installed_packages(cfg: &Config) -> Vec<CrateVersion> {
+fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>,UpgradeError> {
     let mut path = cfg.cpath.clone();
     path.push(".crates.toml");
     let mut out = Vec::new();
 
-    if let Ok(mut file) = File::open(&path) {
-        let mut s = String::new();
-        let _ = file.read_to_string(&mut s);
-        let mut parser = toml::Parser::new(&s);
-        let toml = match parser.parse() {
-            Some(toml) => toml,
-            None => {panic!("could not read toml")}
-        };
+    let mut file = try!(File::open(&path));
+    let mut s = String::new();
+    let _ = file.read_to_string(&mut s);
+    let mut parser = toml::Parser::new(&s);
+    let toml = match parser.parse() {
+        Some(toml) => toml,
+        None => {panic!("could not read toml")}
+    };
 
-        for v in toml.values() {
-            if let Some(stable) = v.as_table() {
-                for (k2,v2) in stable {
-                    let crat = k2.as_str().to_owned();
-                    let elements: Vec<&str> = crat.split(' ').collect();
-                    let address = elements[2].trim_matches(|c| c == '(' || c == ')');
-                    let mut topush = CrateVersion::new_fromstr(elements[0], &elements[1]);
-                    let addr: Vec<&str> = address.split('+').collect();
-                    match addr[0] {
-                        "git" => {
-                            let mut elem = addr[1].split('#');
-                            topush.set_repo(elem.next().unwrap(), elem.next().unwrap());
-                        },
-                        "path" if cfg!(target_os = "windows") => {
-                            topush.set_path(addr[1].trim_left_matches("file:///"));
-                        },
-                        "path" => {
-                            topush.set_path(addr[1].trim_left_matches("file://"));
-                        },
-                        _ => {},
-                    };
+    for v in toml.values() {
+        if let Some(stable) = v.as_table() {
+            for (k2,v2) in stable {
+                let crat = k2.as_str().to_owned();
+                let elements: Vec<&str> = crat.split(' ').collect();
+                let address = elements[2].trim_matches(|c| c == '(' || c == ')');
+                let mut topush = CrateVersion::new_fromstr(elements[0], &elements[1]);
+                let addr: Vec<&str> = address.split('+').collect();
+                match addr[0] {
+                    "git" => {
+                        let mut elem = addr[1].split('#');
+                        topush.set_repo(elem.next().unwrap(), elem.next().unwrap());
+                    },
+                    "path" if cfg!(target_os = "windows") => {
+                        topush.set_path(addr[1].trim_left_matches("file:///"));
+                    },
+                    "path" => {
+                        topush.set_path(addr[1].trim_left_matches("file://"));
+                    },
+                    _ => {},
+                };
 
-                    if let Some(binaries) = v2.as_slice() {
-                        let bin: Vec<&str> = binaries.into_iter().map(|x| x.as_str().unwrap()).collect();
-                        let mut binar = Vec::new();
-                        for stri in bin {
-                            let mut path = cfg.cpath.clone();
-                            path.push("bin");
-                            path.push(stri);
-                            binar.push(path);
-                        }
-                        //println!("{:?}", binar);
-                        topush.set_binaries(binar)
+                if let Some(binaries) = v2.as_slice() {
+                    let bin: Vec<&str> = binaries.into_iter().map(|x| x.as_str().unwrap()).collect();
+                    let mut binar = Vec::new();
+                    for stri in bin {
+                        let mut path = cfg.cpath.clone();
+                        path.push("bin");
+                        path.push(stri);
+                        binar.push(path);
                     }
-                    debug!("{:?}", topush);
-                    out.push(topush);
+                    //println!("{:?}", binar);
+                    topush.set_binaries(binar)
                 }
+                debug!("{:?}", topush);
+                out.push(topush);
             }
         }
     }
-    out
+    Ok(out)
 }
 
 //fn get_installed_packages() -> Vec<CrateVersion> {

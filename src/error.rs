@@ -1,26 +1,40 @@
 use std::fmt::{Display, Formatter, Result};
 use std::error::Error;
-use self::RemoteError::*;
+use std::io;
+use self::UpgradeError::*;
 
 #[derive(Debug)]
-pub enum RemoteError {
-    NoCargoToml(String),
-    CargoToml(String),
+pub enum UpgradeError {
+    Parse(String),
     NoCrate(String),
-    ParseError(String),
+    Io(io::Error),
 }
 
-impl Display for RemoteError {
+impl Display for UpgradeError {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{}", self.description())
     }
 }
 
-impl Error for RemoteError {
+impl Error for UpgradeError {
     fn description(&self) -> &str {
         match *self {
-            ParseError(..) => "parse error",
-            NoCargoToml(ref s) | CargoToml(ref s) | NoCrate(ref s) => &*s,
+            Parse(..) => "Parse Error",
+            NoCrate(ref s) => &*s,
+            Io(ref err) => err.description(),
         }
     }   
+
+    fn cause(&self) -> Option<&Error> {
+        match *self {
+            Io(ref err) => Some(err as &Error),
+            _ => None,
+        }
+    }
+}
+
+impl From<io::Error> for UpgradeError {
+    fn from(err: io::Error) -> UpgradeError {
+        UpgradeError::Io(err)
+    }
 }

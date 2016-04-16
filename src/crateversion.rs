@@ -6,8 +6,12 @@ use self::PackageSource::*;
 use util::*;
 use tempdir::TempDir;
 use config::Config;
-use error::RemoteError;
+use error::UpgradeError;
 use std::fs::{copy,DirBuilder};
+use std::result;
+use std::io::{Error,ErrorKind};
+
+type Result<T> = result::Result<T, UpgradeError>;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum PackageSource {
@@ -158,27 +162,25 @@ impl CrateVersion {
         cmd_run(&args, true)
     }
 
-    fn backup(&self, cfg: &Config) -> Result<TempDir,&str> {
-        if let Ok(tmpd) = TempDir::new(&self.name) {
-            let mut reppath = tmpd.path().to_path_buf();
-            reppath.push("bin");
-            DirBuilder::new()
-                .recursive(true)
-                .create(&reppath).unwrap();
-            for binary in &self.binaries {
-                reppath.push(binary.file_name().unwrap().to_str().unwrap());
-                let _ = copy(binary, &reppath);
-                reppath.pop();
-            }
+    fn backup(&self, cfg: &Config) -> Result<TempDir> {
+        let tmpd = try!(TempDir::new(&self.name));
+        let mut reppath = tmpd.path().to_path_buf();
+        reppath.push("bin");
+        DirBuilder::new()
+            .recursive(true)
+            .create(&reppath).unwrap();
+        for binary in &self.binaries {
+            reppath.push(binary.file_name().unwrap().to_str().unwrap());
+            let _ = copy(binary, &reppath);
             reppath.pop();
-            let mut datpath = cfg.cpath.clone();
-            datpath.push(".crates.toml");
-            reppath.push(".crates.toml");
-            let _ = copy(&datpath, &reppath);
-        return Ok(tmpd)
-        } else {
-            return Err("could not create tempdir")
-        };
+        }
+        reppath.pop();
+        let mut datpath = cfg.cpath.clone();
+        datpath.push(".crates.toml");
+        reppath.push(".crates.toml");
+        let _ = copy(&datpath, &reppath);
+
+        Ok(tmpd)
     }
 
     fn reverse_backup(&self, dir: TempDir, cfg: &Config) {
@@ -234,31 +236,28 @@ impl fmt::Display for CrateVersion {
     }
 }
 
-fn parse_cratesio(cratename: &str) -> Result<String, RemoteError> {
+fn parse_cratesio(cratename: &str) -> Result<String> {
     let input = cmd_return(&["cargo", "search", cratename]);
     let line = match input.lines()
             .filter(|x| x.starts_with(&format!("{} ", cratename))).nth(0) {
         Some(line) => line,
-        None => return Err(RemoteError::NoCrate(cratename.to_owned())),
+        None => return Err(UpgradeError::NoCrate(cratename.to_owned())),
     };
     match line.split(|c| c == '(' || c == ')').map(|s| s.trim()).nth(1) {
         Some(val) => Ok(val.to_owned()),
-        None => Err(RemoteError::ParseError(String::from("Could not parse cargo search output"))),
+        None => Err(UpgradeError::Parse(String::from("CratesIo"))),
     }
 }
 
-fn parse_cargo_toml<P,S>(path: P, field: S) -> Result<String, RemoteError>
+fn parse_cargo_toml<P,S>(path: P, field: S) -> Result<String>
                 where P: AsRef<Path>, S: AsRef<str> {
     use serde_json::{self, Value};
     let pa = path.as_ref().join("Cargo.toml");
     if !pa.is_file() {
-        return Err(RemoteError::NoCargoToml(format!("Error: {} is no file.", pa.to_str().unwrap().to_owned())));
+        return Err(UpgradeError::Io(
+                Error::new(ErrorKind::NotFound, pa.to_str().unwrap().to_owned())))
     }
-
-    let pa = match pa.to_str() {
-        Some(pa) => pa,
-        None => return Err(RemoteError::NoCargoToml("could not read Cargo.toml".to_owned())),
-    };
+    let pa = pa.to_str().unwrap();
 
     //let pa = format!("{}/Cargo.toml", path);
     let input = cmd_return(&["cargo", "read-manifest", "--manifest-path", pa]);
@@ -273,5 +272,5 @@ fn parse_cargo_toml<P,S>(path: P, field: S) -> Result<String, RemoteError>
         debug!("Version: {}", v);
         return Ok(v.to_owned());
     }
-    Err(RemoteError::CargoToml(format!("Error parsing {}", pa)))
+    Err(UpgradeError::Parse(String::from("Cargo.toml")))
 }
