@@ -74,7 +74,7 @@ fn main() {
             (None, None) => PackageMode::All,
             (Some(m), None) => PackageMode::Include(m),
             (None, Some(m)) => PackageMode::Exclude(m),
-            (Some(_), Some(_)) => panic!("fehler"),
+            (Some(_), Some(_)) => unreachable!(),
         };
 
         let home = match m.value_of("cargo") {
@@ -95,13 +95,13 @@ fn main() {
             cpath: home,
         };
         debug!("{:?}", cfg);
-        execute(&cfg);
+        execute(cfg);
     }
 }
 
-fn execute(cfg: &Config) {
+fn execute(cfg: Config) {
     info!("Searc for packages");
-    let mut installed: Vec<CrateVersion> = read_installed_packages(cfg);
+    let mut installed: Vec<CrateVersion> = read_installed_packages(&cfg);
     info!("Found packages: {:?}", installed);
 
     match cfg.mode {
@@ -118,12 +118,12 @@ fn execute(cfg: &Config) {
 
     for cr in &mut installed {
         debug!("before: {}", cr);
-        cr.get_remote_version(cfg);
+        cr.get_remote_version(&cfg);
         debug!("after: {}", cr);
 
         //#[cfg_attr(feature="clippy", allow(match_same_arms))]
         match (cr.new_remote_version(), cfg.force, cr.is_cratesio()) {
-            (true,_,_) | (false,true,false) => cr.upgrade(cfg),
+            (true,_,_) | (_,true,false) => cr.upgrade(&cfg),
             (false,false,false) =>
                 println!("{} is a local/git package. Force an upgrade with -f", cr),
             _ => println!("{} is up to date.", cr),
@@ -149,7 +149,7 @@ fn read_installed_packages(cfg: &Config) -> Vec<CrateVersion> {
         let mut parser = toml::Parser::new(&s);
         let toml = match parser.parse() {
             Some(toml) => toml,
-            None => {panic!("could not reat toml")}
+            None => {panic!("could not read toml")}
         };
 
         for v in toml.values() {
