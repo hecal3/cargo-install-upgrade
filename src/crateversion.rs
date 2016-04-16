@@ -1,17 +1,18 @@
 use semver::Version;
-use std::fmt;
-use std::path::PathBuf;
-use std::path::Path;
-use self::PackageSource::*;
-use util::*;
 use tempdir::TempDir;
-use config::Config;
-use error::UpgradeError;
+
+use std::{fmt,result};
+use std::path::{PathBuf,Path};
 use std::fs::{copy,DirBuilder};
-use std::result;
 use std::io::{Error,ErrorKind};
 
-type Result<T> = result::Result<T, UpgradeError>;
+use self::PackageSource::*;
+use util::*;
+use config::Config;
+use error::UpgradeError;
+
+
+pub type Result<T> = result::Result<T, UpgradeError>;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum PackageSource {

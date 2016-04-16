@@ -25,15 +25,16 @@ mod crateversion;
 mod config;
 mod error;
 
-use config::Config;
-use config::PackageMode;
-use util::*;
 use clap::{App, Arg, AppSettings, SubCommand};
-use crateversion::CrateVersion;
+
 use std::fs::File;
 use std::io::prelude::Read;
 use std::path::PathBuf;
-use error::UpgradeError;
+
+use crateversion::{CrateVersion,Result};
+use config::*;
+use util::*;
+
 
 // Start the logger
 #[cfg(feature="logger")]
@@ -138,7 +139,7 @@ fn execute(cfg: Config) {
     }
 }
 
-fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>,UpgradeError> {
+fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>> {
     let mut path = cfg.cpath.clone();
     path.push(".crates.toml");
     let mut out = Vec::new();
@@ -149,7 +150,7 @@ fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>,UpgradeErro
     let mut parser = toml::Parser::new(&s);
     let toml = match parser.parse() {
         Some(toml) => toml,
-        None => {panic!("could not read toml")}
+        None => panic!("could not read toml"),
     };
 
     for v in toml.values() {
@@ -193,28 +194,3 @@ fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>,UpgradeErro
     }
     Ok(out)
 }
-
-//fn get_installed_packages() -> Vec<CrateVersion> {
-    //let input = cmd_return(&["cargo", "install", "--list"]);
-
-    //let mut out = Vec::new();
-    //for line in input.lines().filter(|x| !x.starts_with(' ')) {
-        //let elements = line.split(' ')
-                           //.map(|x| x.trim_matches(|c| c == ':' || c == '(' || c == ')'))
-                           //.collect::<Vec<&str>>();
-
-        //let mut topush = CrateVersion::new_fromstr(elements[0], &elements[1][1..]);
-        //if elements.len() == 3 {
-            //if elements[2].starts_with("http") {
-                //let mut elem = elements[2].split('#');
-                //topush.set_repo(elem.next().unwrap(), elem.next().unwrap());
-            //} else if cfg!(target_os = "windows") {
-                //topush.set_path(elements[2].trim_left_matches("file:///"));
-            //} else {
-                //topush.set_path(elements[2].trim_left_matches("file://"));
-            //}
-        //}
-        //out.push(topush);
-    //}
-    //out
-//}
