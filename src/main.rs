@@ -79,24 +79,23 @@ fn main() {
         };
 
         let home = match m.value_of("cargo") {
-            Some(val) => PathBuf::from(val),
-            None => {
-                match search_cargo_data() {
-                    Some(ch) => ch,
-                    None => panic!("Could not find cargo home directory. Please set it manually with -c")
-                }
-            },
+            Some(val) => Some(PathBuf::from(val)),
+            None => search_cargo_data(),
         };
 
-        let cfg = Config {
-            upgrade: !m.is_present("dry-run"),
-            force: m.is_present("force"),
-            verbose: m.is_present("verbose"),
-            mode: mode,
-            cpath: home,
-        };
-        debug!("{:?}", cfg);
-        execute(cfg);
+        if let Some(home) = home {
+            let cfg = Config {
+                upgrade: !m.is_present("dry-run"),
+                force: m.is_present("force"),
+                verbose: m.is_present("verbose"),
+                mode: mode,
+                cpath: home,
+            };
+            debug!("{:?}", cfg);
+            execute(cfg);
+        } else {
+            println!("Could not find carho home directory. Please set it manually with -c.");
+        }
     }
 }
 

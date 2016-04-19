@@ -34,6 +34,10 @@ pub fn cmd_return(cmd: &[&str]) -> String {
 pub fn search_cargo_data() -> Option<PathBuf> {
     debug!("Search for cargohome");
     let mut candidates = Vec::new();
+    if cfg!(target_os = "windows") {
+        candidates.push("AppData/Local/.multirust/toolchains/stable/cargo");
+        candidates.push("AppData/Local/.multirust/cargo");
+    }   
     candidates.push(".multirust/toolchains/stable/cargo");
     candidates.push(".cargo");
     let mut retpath: Option<PathBuf> = None;
