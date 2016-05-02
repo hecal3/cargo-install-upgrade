@@ -184,7 +184,7 @@ fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>,UpgradeErro
                         binar.push(path);
                     }
                     //println!("{:?}", binar);
-                    topush.set_binaries(binar)
+                    topush.set_binaries(&binar)
                 }
                 debug!("{:?}", topush);
                 out.push(topush);

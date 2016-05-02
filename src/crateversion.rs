@@ -66,8 +66,8 @@ impl CrateVersion {
     }
 
     /// Sets binaries
-    pub fn set_binaries(&mut self, bin: Vec<PathBuf>) {
-        self.binaries.extend(bin);
+    pub fn set_binaries(&mut self, bin: &[PathBuf]) {
+        self.binaries.extend_from_slice(bin);
     }
 
     /// Returns true if the package source is Crates.io
