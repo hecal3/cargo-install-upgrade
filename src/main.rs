@@ -159,7 +159,7 @@ fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>> {
                 let crat = k2.as_str().to_owned();
                 let elements: Vec<&str> = crat.split(' ').collect();
                 let address = elements[2].trim_matches(|c| c == '(' || c == ')');
-                let mut topush = CrateVersion::new_fromstr(elements[0], &elements[1]);
+                let mut topush = CrateVersion::new_fromstr(elements[0], elements[1]);
                 let addr: Vec<&str> = address.split('+').collect();
                 match addr[0] {
                     "git" => {

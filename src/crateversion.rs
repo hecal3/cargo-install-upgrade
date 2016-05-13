@@ -100,7 +100,7 @@ impl CrateVersion {
                 match TempDir::new("tmprepo") {
                     Ok(tmpd) => {
                         let reppath = tmpd.path().to_path_buf();
-                        cmd_run(&["git", "clone", "--depth=1", &url, reppath.to_str().unwrap()], cfg.verbose);
+                        cmd_run(&["git", "clone", "--depth=1", url, reppath.to_str().unwrap()], cfg.verbose);
                         let out = match parse_cargo_toml(&reppath, "version") {
                             Ok(out) => out,
                             Err(e) => {
