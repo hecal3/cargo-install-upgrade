@@ -10,7 +10,7 @@ Supports the following sources:
 - local repositorys (`cargo install --path`)
 - git repositorys (`cargo install --git`)
 
-This command will keep itself up to date. (On Unix systems)
+This command will keep itself up to date.
 
 ## Installation
 ```

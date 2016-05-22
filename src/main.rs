@@ -35,9 +35,6 @@ use crateversion::{CrateVersion,Result};
 use config::*;
 use util::*;
 
-static CRATENAME: &'static str = "cargo-install-upgrade";
-
-
 // Start the logger
 #[cfg(feature="logger")]
 fn start_logger() {
@@ -48,11 +45,10 @@ fn start_logger() {
 #[cfg(not(feature="logger"))]
 fn start_logger() { }
 
-
 fn main() {
     start_logger();
 
-    let m = App::new(CRATENAME)
+    let m = App::new("cargo-install-upgrade")
         .author("hecal3 <hecal3@users.noreply.github.com>")
         .about("Updates crates installed with cargo install")
         .version(&*format!("v{}", crate_version!()))
@@ -116,11 +112,6 @@ fn execute(cfg: Config) {
         },
         _ => {},
     };
-
-    if cfg!(target_os = "windows") {
-        installed.retain(|x| &x.name != CRATENAME);
-    }
-
 
     for cr in &mut installed {
         debug!("before: {}", cr);

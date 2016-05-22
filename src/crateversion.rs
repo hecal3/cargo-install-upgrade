@@ -3,7 +3,7 @@ use tempdir::TempDir;
 
 use std::{fmt,result};
 use std::path::{PathBuf,Path};
-use std::fs::{copy,DirBuilder};
+use std::fs::{rename,copy,DirBuilder};
 use std::io::{Error,ErrorKind};
 
 use self::PackageSource::*;
@@ -172,7 +172,8 @@ impl CrateVersion {
             .create(&reppath).unwrap();
         for binary in &self.binaries {
             reppath.push(binary.file_name().unwrap().to_str().unwrap());
-            let _ = copy(binary, &reppath);
+            let _ = rename(binary, &reppath);
+            let _ = copy(&reppath, binary);
             reppath.pop();
         }
         reppath.pop();
@@ -193,7 +194,7 @@ impl CrateVersion {
             let filename = binary.file_name().unwrap().to_str().unwrap();
             tmppath.push(filename);
             cargopath.push(filename);
-            let _ = copy(&tmppath, &cargopath);
+            let _ = rename(&tmppath, &cargopath);
             tmppath.pop();
             cargopath.pop();
         }
