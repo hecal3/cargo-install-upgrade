@@ -3,9 +3,6 @@
 //! # Usage
 //!
 //! `cargo install-upgrade`
-#![cfg_attr(feature="clippy", feature(plugin))]
-//#![cfg_attr(feature="clippy", feature(stmt_expr_attributes))]
-#![cfg_attr(feature="clippy", plugin(clippy))]
 
 #[macro_use] extern crate clap;
 extern crate semver;
@@ -118,7 +115,6 @@ fn execute(cfg: Config) {
         cr.get_remote_version(&cfg);
         debug!("after: {}", cr);
 
-        //#[cfg_attr(feature="clippy", allow(match_same_arms))]
         match (cr.new_remote_version(), cfg.force, cr.is_cratesio()) {
             (true,_,_) | (_,true,false) => cr.upgrade(&cfg),
             (false,false,false) =>
