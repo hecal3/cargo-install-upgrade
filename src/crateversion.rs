@@ -172,8 +172,12 @@ impl CrateVersion {
             .create(&reppath).unwrap();
         for binary in &self.binaries {
             reppath.push(binary.file_name().unwrap().to_str().unwrap());
-            let _ = rename(binary, &reppath);
-            let _ = copy(&reppath, binary);
+            if cfg!(target_os = "windows") {
+                let _ = rename(binary, &reppath);
+                let _ = copy(&reppath, binary);
+            } else {
+                let _ = copy(binary, &reppath);
+            }
             reppath.pop();
         }
         reppath.pop();
@@ -194,7 +198,11 @@ impl CrateVersion {
             let filename = binary.file_name().unwrap().to_str().unwrap();
             tmppath.push(filename);
             cargopath.push(filename);
-            let _ = rename(&tmppath, &cargopath);
+            if cfg!(target_os = "windows") {
+                let _ = rename(&tmppath, &cargopath);
+            } else {
+                let _ = copy(&tmppath, &cargopath);
+            }
             tmppath.pop();
             cargopath.pop();
         }
