@@ -5,6 +5,7 @@ use std::{fmt,result};
 use std::path::{PathBuf,Path};
 use std::fs::{rename,copy,DirBuilder};
 use std::io::{Error,ErrorKind};
+use std::borrow::Cow;
 
 use self::PackageSource::*;
 use util::*;
@@ -40,7 +41,7 @@ pub struct CrateVersion {
 impl CrateVersion {
     pub fn new<S>(name: S, ver: Version) -> CrateVersion where S: Into<String> {
         CrateVersion {
-            name: name.into(),
+           name: name.into(),
             version: ver.clone(),
             remote_version: ver,
             source: CratesIo,
@@ -88,7 +89,7 @@ impl CrateVersion {
     pub fn get_remote_version(&mut self, cfg: &Config) {
         let ver = match self.source {
             CratesIo => {
-                match parse_cratesio(&self.name) {
+                match parse_cratesio(self.name.as_ref()) {
                     Ok(out) => out,
                     Err(e) => {
                         println!("{} {}", e, self);
@@ -164,7 +165,7 @@ impl CrateVersion {
     }
 
     fn backup(&self, cfg: &Config) -> Result<TempDir> {
-        let tmpd = try!(TempDir::new(&self.name));
+        let tmpd = TempDir::new(&self.name)?;
         let mut reppath = tmpd.path().to_path_buf();
         reppath.push("bin");
         DirBuilder::new()
@@ -189,8 +190,8 @@ impl CrateVersion {
         Ok(tmpd)
     }
 
-    fn reverse_backup(&self, dir: TempDir, cfg: &Config) {
-        let mut tmppath = dir.path().to_path_buf();
+    fn reverse_backup<P>(&self, dir: P, cfg: &Config) where P: AsRef<Path> {
+        let mut tmppath = dir.as_ref().to_path_buf();
         let mut cargopath = cfg.cpath.clone();
         tmppath.push("bin");
         cargopath.push("bin");
@@ -246,12 +247,13 @@ impl fmt::Display for CrateVersion {
     }
 }
 
-fn parse_cratesio(cratename: &str) -> Result<String> {
-    let input = cmd_return(&["cargo", "search", cratename]);
+fn parse_cratesio<'a, S>(cratename: S) -> Result<String> where S: Into<Cow<'a,str>>{
+    let cratename = cratename.into();
+    let input = cmd_return(&["cargo", "search", cratename.as_ref()]);
     let line = match input.lines()
             .filter(|x| x.starts_with(&format!("{} ", cratename))).nth(0) {
         Some(line) => line,
-        None => return Err(UpgradeError::NoCrate(cratename.to_owned())),
+        None => return Err(UpgradeError::NoCrate(cratename.into_owned())),
     };
     match line.split(|c| c == '(' || c == ')').map(|s| s.trim()).nth(1) {
         Some(val) => Ok(val.to_owned()),
@@ -262,7 +264,7 @@ fn parse_cratesio(cratename: &str) -> Result<String> {
 fn parse_cargo_toml<P,S>(path: P, field: S) -> Result<String>
                 where P: AsRef<Path>, S: AsRef<str> {
     use serde_json::{self, Value};
-    let pa = path.as_ref().join("Cargo.toml");
+    let pa: PathBuf = path.as_ref().join("Cargo.toml");
     if !pa.is_file() {
         return Err(UpgradeError::Io(
                 Error::new(ErrorKind::NotFound, pa.to_str().unwrap().to_owned())))

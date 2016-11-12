@@ -31,6 +31,7 @@ use std::path::PathBuf;
 use crateversion::{CrateVersion,Result};
 use config::*;
 use util::*;
+use error::UpgradeError;
 
 // Start the logger
 #[cfg(feature="logger")]
@@ -136,13 +137,13 @@ fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>> {
     path.push(".crates.toml");
     let mut out = Vec::new();
 
-    let mut file = try!(File::open(&path));
+    let mut file = File::open(&path)?;
     let mut s = String::new();
     let _ = file.read_to_string(&mut s);
     let mut parser = toml::Parser::new(&s);
     let toml = match parser.parse() {
         Some(toml) => toml,
-        None => panic!("could not read toml"),
+        None => return Err(UpgradeError::Parse(String::from("Could not read Toml"))),
     };
 
     for v in toml.values() {
