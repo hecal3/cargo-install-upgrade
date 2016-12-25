@@ -47,7 +47,7 @@ pub fn search_cargo_data() -> Option<PathBuf> {
         debug!("dir: {}", path.display());
         path.push(".crates.toml");
         debug!("file: {}", path.display());
-        if let Ok(_) = metadata(path) {
+        if metadata(path).is_ok() {
             break;
         } else {
             retpath = None;
