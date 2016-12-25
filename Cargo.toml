@@ -9,13 +9,13 @@ description = "Extends cargo to upgrade packages installed via 'cargo install'"
 name = "cargo-install-upgrade"
 
 [dependencies]
-semver = "0.2.3"
-clap = "2.1.2"
-serde_json = "0.7.0"
+semver = "0.5"
+clap = "2.19"
+serde_json = "0.8"
 tempdir = "0.3"
 log = { version = "*", optional = true }
 env_logger = {version = "*", optional = true }
-toml = { version = "0.1.28", default-features = false, features = ["serde"] }
+toml = { version = "0.2", default-features = false, features = ["serde"] }
 
 [features]
 default = []
