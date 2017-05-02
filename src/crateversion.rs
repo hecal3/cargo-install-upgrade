@@ -255,7 +255,7 @@ fn parse_cratesio<'a, S>(cratename: S) -> Result<String> where S: Into<Cow<'a,st
         Some(line) => line,
         None => return Err(UpgradeError::NoCrate(cratename.into_owned())),
     };
-    match line.split(|c| c == '(' || c == ')').map(|s| s.trim()).nth(1) {
+    match line.split(|c| c == '"').map(|s| s.trim()).nth(1) {
         Some(val) => Ok(val.to_owned()),
         None => Err(UpgradeError::Parse(String::from("CratesIo"))),
     }
