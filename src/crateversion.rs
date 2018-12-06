@@ -8,9 +8,9 @@ use std::io::{Error,ErrorKind};
 use std::borrow::Cow;
 
 use self::PackageSource::*;
-use util::*;
-use config::Config;
-use error::UpgradeError;
+use crate::config::Config;
+use crate::UpgradeError;
+use crate::util::*;
 
 
 pub type Result<T> = result::Result<T, UpgradeError>;
@@ -89,7 +89,8 @@ impl CrateVersion {
     pub fn get_remote_version(&mut self, cfg: &Config) {
         let ver = match self.source {
             CratesIo => {
-                match parse_cratesio(self.name.as_ref()) {
+                let tmp: &str = self.name.as_ref();
+                match parse_cratesio(tmp) {
                     Ok(out) => out,
                     Err(e) => {
                         println!("{} {}", e, self);

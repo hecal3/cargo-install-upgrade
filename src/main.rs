@@ -28,10 +28,10 @@ use std::fs::File;
 use std::io::prelude::Read;
 use std::path::PathBuf;
 
-use crateversion::{CrateVersion,Result};
-use config::*;
-use util::*;
-use error::UpgradeError;
+use crate::crateversion::{CrateVersion,Result};
+use crate::config::*;
+use crate::util::*;
+use crate::error::UpgradeError;
 
 // Start the logger
 #[cfg(feature="logger")]

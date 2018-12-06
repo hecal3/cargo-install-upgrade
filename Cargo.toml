@@ -4,6 +4,7 @@ version = "0.2.3"
 authors = ["hecal3 <hecal3@users.noreply.github.com>"]
 keywords = ["cargo", "subcommand", "install", "upgrade"]
 description = "Extends cargo to upgrade packages installed via 'cargo install'"
+edition = "2018"
 
 [[bin]]
 name = "cargo-install-upgrade"
