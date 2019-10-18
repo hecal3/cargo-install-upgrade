@@ -82,7 +82,7 @@ impl CrateVersion {
 
     /// True if new remote version is available.
     pub fn new_remote_version(&self) -> bool {
-        &self.version < &self.remote_version
+        self.version < self.remote_version
     }
 
     /// Search the remote for new versions
@@ -264,7 +264,7 @@ fn parse_cratesio<'a, S>(cratename: S) -> Result<String> where S: Into<Cow<'a,st
 
 fn parse_cargo_toml<P,S>(path: P, field: S) -> Result<String>
                 where P: AsRef<Path>, S: AsRef<str> {
-    use serde_json::{self, Value};
+    use serde_json::Value;
     let pa: PathBuf = path.as_ref().join("Cargo.toml");
     if !pa.is_file() {
         return Err(UpgradeError::Io(

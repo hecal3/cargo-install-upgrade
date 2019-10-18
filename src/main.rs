@@ -10,13 +10,9 @@ extern crate serde_json;
 extern crate tempdir;
 extern crate toml;
 
-#[cfg(feature="logger")]
 #[macro_use] extern crate log;
-#[cfg(feature="logger")]
 extern crate env_logger;
 
-
-#[macro_use] mod macros;
 mod util;
 mod crateversion;
 mod config;
@@ -33,18 +29,8 @@ use crate::config::*;
 use crate::util::*;
 use crate::error::UpgradeError;
 
-// Start the logger
-#[cfg(feature="logger")]
-fn start_logger() {
-    env_logger::init().unwrap();
-}
-
-// Do not start the logger
-#[cfg(not(feature="logger"))]
-fn start_logger() { }
-
 fn main() {
-    start_logger();
+    env_logger::init();
 
     let m = App::new("cargo-install-upgrade")
         .author("hecal3 <hecal3@users.noreply.github.com>")
@@ -85,13 +71,13 @@ fn main() {
                 upgrade: !m.is_present("dry-run"),
                 force: m.is_present("force"),
                 verbose: m.is_present("verbose"),
-                mode: mode,
+                mode,
                 cpath: home,
             };
             debug!("{:?}", cfg);
             execute(cfg);
         } else {
-            println!("Could not find carho home directory. Please set it manually with -c.");
+            println!("Could not find cargo home directory. Please set it manually with -c.");
         }
     }
 }
@@ -126,7 +112,7 @@ fn execute(cfg: Config) {
 
     if let PackageMode::Include(ref packages) = cfg.mode {
         let installed: Vec<String> = installed.into_iter().map(|x| x.name).collect();
-        for n in packages.into_iter().filter(|x| !installed.contains(x)) {
+        for n in packages.iter().filter(|x| !installed.contains(x)) {
             println!("{} is not installed.", n);
         }
     }
@@ -160,16 +146,16 @@ fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>> {
                         topush.set_repo(elem.next().unwrap(), elem.next().unwrap());
                     },
                     "path" if cfg!(target_os = "windows") => {
-                        topush.set_path(addr[1].trim_left_matches("file:///"));
+                        topush.set_path(addr[1].trim_start_matches("file:///"));
                     },
                     "path" => {
-                        topush.set_path(addr[1].trim_left_matches("file://"));
+                        topush.set_path(addr[1].trim_start_matches("file://"));
                     },
                     _ => {},
                 };
 
                 if let Some(binaries) = v2.as_slice() {
-                    let bin: Vec<&str> = binaries.into_iter().map(|x| x.as_str().unwrap()).collect();
+                    let bin: Vec<&str> = binaries.iter().map(|x| x.as_str().unwrap()).collect();
                     let mut binar = Vec::new();
                     for stri in bin {
                         let mut path = cfg.cpath.clone();

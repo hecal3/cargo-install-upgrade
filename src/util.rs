@@ -1,7 +1,8 @@
+extern crate dirs;
+
 use std::process::{Command, Stdio};
 use std::path::PathBuf;
 use std::fs::*;
-use std::env::home_dir;
 
 pub fn cmd_run(cmd: &[&str], verbose: bool) -> bool {
     info!("run command: {}", cmd.join(" "));
@@ -27,7 +28,7 @@ pub fn cmd_return(cmd: &[&str]) -> String {
     let mut command = Command::new(cmd[0]);
     command.args(&cmd[1..]);
     let out = command.output().unwrap_or_else(|e| panic!("{}", e));
-    String::from_utf8(out.stdout).unwrap_or("ERROR".to_owned())
+    String::from_utf8(out.stdout).unwrap_or_else(|_| "ERROR".to_owned())
 }
 
 
@@ -41,7 +42,7 @@ pub fn search_cargo_data() -> Option<PathBuf> {
     let mut retpath: Option<PathBuf> = None;
 
     for p in candidates {
-        let mut path: PathBuf = home_dir().unwrap();
+        let mut path: PathBuf = dirs::home_dir()?;
         path.push(p);
         retpath = Some(path.clone());
         debug!("dir: {}", path.display());

@@ -25,9 +25,9 @@ impl Error for UpgradeError {
         }
     }   
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
-            Io(ref err) => Some(err as &Error),
+            Io(ref err) => Some(err as &dyn Error),
             _ => None,
         }
     }
