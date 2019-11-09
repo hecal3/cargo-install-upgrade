@@ -1,6 +1,6 @@
 [package]
 name = "cargo-install-upgrade"
-version = "0.2.5"
+version = "1.0.0"
 authors = ["hecal3 <hecal3@users.noreply.github.com>"]
 keywords = ["cargo", "subcommand", "install", "upgrade"]
 description = "Extends cargo to upgrade packages installed via 'cargo install'"
@@ -18,3 +18,4 @@ log = "*"
 env_logger = "*"
 toml = { version = "0.2", default-features = false, features = ["serde"] }
 dirs = "1.0.4"
+structopt = "0.3"
