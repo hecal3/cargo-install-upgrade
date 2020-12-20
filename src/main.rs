@@ -97,16 +97,16 @@ fn execute(cfg: Config) {
         _ => {},
     };
 
-    for cr in &mut installed {
-        debug!("before: {}", cr);
-        cr.get_remote_version(&cfg);
-        debug!("after: {}", cr);
+    for crate_version in &mut installed {
+        debug!("before: {}", crate_version);
+        crate_version.get_remote_version(&cfg);
+        debug!("after: {}", crate_version);
 
-        match (cr.new_remote_version(), cfg.force, cr.is_cratesio()) {
-            (true,_,_) | (_,true,false) => cr.upgrade(&cfg),
+        match (crate_version.new_remote_version(), cfg.force, crate_version.is_cratesio()) {
+            (true,_,_) | (_,true,false) => crate_version.upgrade(&cfg),
             (false,false,false) =>
-                println!("{} is a local/git package. Force an upgrade with -f", cr),
-            _ => println!("{} is up to date.", cr),
+                println!("{} is a local/git package. Force an upgrade with -f", crate_version),
+            _ => println!("{} is up to date.", crate_version),
         }
     }
 
@@ -126,13 +126,11 @@ fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>> {
     let mut file = File::open(&path)?;
     let mut s = String::new();
     let _ = file.read_to_string(&mut s);
-    let mut parser = toml::Parser::new(&s);
-    let toml = match parser.parse() {
-        Some(toml) => toml,
-        None => return Err(UpgradeError::Parse(String::from("Could not read Toml"))),
-    };
+    //let mut parser = toml::Parser::new(&s);
+    let toml = s.parse::<toml::Value>()?;
+    let vals = toml.as_table().unwrap();
 
-    for v in toml.values() {
+    for v in vals.values() {
         if let Some(stable) = v.as_table() {
             for (k2,v2) in stable {
                 let crat = k2.as_str().to_owned();
@@ -154,17 +152,18 @@ fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>> {
                     _ => {},
                 };
 
-                if let Some(binaries) = v2.as_slice() {
+                if let Some(binaries) = v2.as_array() {
                     let bin: Vec<&str> = binaries.iter().map(|x| x.as_str().unwrap()).collect();
-                    let mut binar = Vec::new();
-                    for stri in bin {
+                    
+                    let mut paths_binaries = Vec::new();
+                    for binaryname in bin {
                         let mut path = cfg.cpath.clone();
                         path.push("bin");
-                        path.push(stri);
-                        binar.push(path);
+                        path.push(binaryname);
+                        paths_binaries.push(path);
                     }
                     //println!("{:?}", binar);
-                    topush.set_binaries(&binar)
+                    topush.set_binaries(&paths_binaries)
                 }
                 debug!("{:?}", topush);
                 out.push(topush);

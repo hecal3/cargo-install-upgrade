@@ -8,27 +8,27 @@ pub enum UpgradeError {
     Parse(String),
     NoCrate(String),
     Io(io::Error),
+    TomlError(toml::de::Error),
 }
 
 impl Display for UpgradeError {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{}", self.description())
+        match *self {
+            Parse(..) => write!(f, "Parse Error"),
+            NoCrate(ref s) => write!(f, "{}", &s),
+            Io(ref err) => err.fmt(f),
+            TomlError(ref err) => err.fmt(f),
+        }
     }
 }
 
 impl Error for UpgradeError {
-    fn description(&self) -> &str {
-        match *self {
-            Parse(..) => "Parse Error",
-            NoCrate(ref s) => &*s,
-            Io(ref err) => err.description(),
-        }
-    }   
 
-    fn cause(&self) -> Option<&dyn Error> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
         match *self {
-            Io(ref err) => Some(err as &dyn Error),
-            _ => None,
+            Io(ref err) => Some(err),
+            TomlError(ref err) => Some(err),
+            _ => None
         }
     }
 }
@@ -36,5 +36,11 @@ impl Error for UpgradeError {
 impl From<io::Error> for UpgradeError {
     fn from(err: io::Error) -> UpgradeError {
         UpgradeError::Io(err)
+    }
+}
+
+impl From<toml::de::Error> for UpgradeError {
+    fn from(err: toml::de::Error) -> UpgradeError {
+        UpgradeError::TomlError(err)
     }
 }
