@@ -20,11 +20,9 @@ mod error;
 
 use clap::{App, Arg, AppSettings, SubCommand};
 
-use std::fs::File;
-use std::io::prelude::Read;
 use std::path::PathBuf;
 
-use crate::crateversion::{CrateVersion,Result};
+use crate::crateversion::CrateVersion;
 use crate::config::*;
 use crate::util::*;
 use crate::error::UpgradeError;
@@ -116,59 +114,4 @@ fn execute(cfg: Config) {
             println!("{} is not installed.", n);
         }
     }
-}
-
-fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>> {
-    let mut path = cfg.cpath.clone();
-    path.push(".crates.toml");
-    let mut out = Vec::new();
-
-    let mut file = File::open(&path)?;
-    let mut s = String::new();
-    let _ = file.read_to_string(&mut s);
-    //let mut parser = toml::Parser::new(&s);
-    let toml = s.parse::<toml::Value>()?;
-    let vals = toml.as_table().unwrap();
-
-    for v in vals.values() {
-        if let Some(stable) = v.as_table() {
-            for (k2,v2) in stable {
-                let crat = k2.as_str().to_owned();
-                let elements: Vec<&str> = crat.split(' ').collect();
-                let address = elements[2].trim_matches(|c| c == '(' || c == ')');
-                let mut topush = CrateVersion::new_fromstr(elements[0], elements[1]);
-                let addr: Vec<&str> = address.split('+').collect();
-                match addr[0] {
-                    "git" => {
-                        let mut elem = addr[1].split('#');
-                        topush.set_repo(elem.next().unwrap(), elem.next().unwrap());
-                    },
-                    "path" if cfg!(target_os = "windows") => {
-                        topush.set_path(addr[1].trim_start_matches("file:///"));
-                    },
-                    "path" => {
-                        topush.set_path(addr[1].trim_start_matches("file://"));
-                    },
-                    _ => {},
-                };
-
-                if let Some(binaries) = v2.as_array() {
-                    let bin: Vec<&str> = binaries.iter().map(|x| x.as_str().unwrap()).collect();
-                    
-                    let mut paths_binaries = Vec::new();
-                    for binaryname in bin {
-                        let mut path = cfg.cpath.clone();
-                        path.push("bin");
-                        path.push(binaryname);
-                        paths_binaries.push(path);
-                    }
-                    //println!("{:?}", binar);
-                    topush.set_binaries(&paths_binaries)
-                }
-                debug!("{:?}", topush);
-                out.push(topush);
-            }
-        }
-    }
-    Ok(out)
 }

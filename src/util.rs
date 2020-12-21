@@ -3,6 +3,12 @@ extern crate dirs;
 use std::process::{Command, Stdio};
 use std::path::PathBuf;
 use std::fs::*;
+use std::fs::File;
+use std::io::prelude::Read;
+
+use crate::error::UpgradeError;
+use crate::config::Config;
+use crate::crateversion::{CrateVersion,Result};
 
 pub fn cmd_run(cmd: &[&str], verbose: bool) -> bool {
     info!("run command: {}", cmd.join(" "));
@@ -55,4 +61,67 @@ pub fn search_cargo_data() -> Option<PathBuf> {
         };
     }
     retpath
+}
+
+
+pub fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>> {
+    let mut path = cfg.cpath.clone();
+    path.push(".crates.toml");
+    let mut out = Vec::new();
+
+    let mut file = File::open(&path)?;
+    let mut s = String::new();
+    let _ = file.read_to_string(&mut s);
+    let toml = s.parse::<toml::Value>()?;
+
+    if !toml.is_table() {
+        return Ok(out);
+    }
+
+    let vals = toml.as_table()
+        .ok_or_else(|| UpgradeError::from("Toml not valid"))?;
+
+    for v in vals.values() {
+        if !v.is_table() {
+            continue;
+        }
+
+        let stable = v.as_table().ok_or_else(|| UpgradeError::from("No Table"))?;
+        for (k2, v2) in stable {
+            let crat = k2.as_str().to_owned();
+            let elements: Vec<&str> = crat.split(' ').collect();
+            let address = elements[2].trim_matches(|c| c == '(' || c == ')');
+            let mut topush = CrateVersion::new_fromstr(elements[0], elements[1]);
+            let addr: Vec<&str> = address.split('+').collect();
+            match addr[0] {
+                "git" => {
+                    let mut elem = addr[1].split('#');
+                    topush.set_repo(elem.next().unwrap(), elem.next().unwrap());
+                },
+                "path" if cfg!(target_os = "windows") => {
+                    topush.set_path(addr[1].trim_start_matches("file:///"));
+                },
+                "path" => {
+                    topush.set_path(addr[1].trim_start_matches("file://"));
+                },
+                _ => {},
+            };
+
+            if let Some(binaries) = v2.as_array() {
+                let bin: Vec<&str> = binaries.iter().map(|x| x.as_str().unwrap()).collect();
+                
+                let mut paths_binaries = Vec::new();
+                for binaryname in bin {
+                    let mut path = cfg.cpath.clone();
+                    path.push("bin");
+                    path.push(binaryname);
+                    paths_binaries.push(path);
+                }
+                topush.set_binaries(&paths_binaries)
+            }
+            debug!("{:?}", topush);
+            out.push(topush);
+        }
+    }
+    Ok(out)
 }

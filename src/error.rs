@@ -7,6 +7,7 @@ use self::UpgradeError::*;
 pub enum UpgradeError {
     Parse(String),
     NoCrate(String),
+    Gen(String),
     Io(io::Error),
     TomlError(toml::de::Error),
 }
@@ -16,6 +17,7 @@ impl Display for UpgradeError {
         match *self {
             Parse(..) => write!(f, "Parse Error"),
             NoCrate(ref s) => write!(f, "{}", &s),
+            Gen(ref s) => write!(f, "{}", &s),
             Io(ref err) => err.fmt(f),
             TomlError(ref err) => err.fmt(f),
         }
@@ -30,6 +32,12 @@ impl Error for UpgradeError {
             TomlError(ref err) => Some(err),
             _ => None
         }
+    }
+}
+
+impl From<&str> for UpgradeError {
+    fn from(s: &str) -> UpgradeError {
+        UpgradeError::Gen(s.to_owned())
     }
 }
 
