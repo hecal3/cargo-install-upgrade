@@ -185,6 +185,12 @@ impl CrateVersion {
         reppath.push(".crates.toml");
         let _ = copy(&datpath, &reppath);
 
+        reppath.pop();
+        datpath.pop();
+        datpath.push(".crates2.json");
+        reppath.push(".crates2.json");
+        let _ = copy(&datpath, &reppath);
+
         Ok(tmpd)
     }
 
@@ -209,6 +215,11 @@ impl CrateVersion {
         cargopath.pop();
         tmppath.push(".crates.toml");
         cargopath.push(".crates.toml");
+        let _ = copy(&tmppath, &cargopath);
+        tmppath.pop();
+        cargopath.pop();
+        tmppath.push(".crates2.json");
+        cargopath.push(".crates2.json");
         let _ = copy(&tmppath, &cargopath);
     }
 }

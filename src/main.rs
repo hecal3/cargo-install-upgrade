@@ -30,7 +30,7 @@ fn main() {
     env_logger::init();
 
     let m = App::new("cargo-install-upgrade")
-        .author("hecal3 <hecal3@users.noreply.github.com>")
+        .author("hecal3")
         .about("Updates crates installed with cargo install")
         .version(&*format!("v{}", crate_version!()))
         .bin_name("cargo")
