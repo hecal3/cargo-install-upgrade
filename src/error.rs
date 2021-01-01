@@ -9,7 +9,7 @@ pub enum UpgradeError {
     NoCrate(String),
     Gen(String),
     Io(io::Error),
-    TomlError(toml::de::Error),
+    SerdeError(serde_json::Error),
 }
 
 impl Display for UpgradeError {
@@ -19,7 +19,7 @@ impl Display for UpgradeError {
             NoCrate(ref s) => write!(f, "{}", &s),
             Gen(ref s) => write!(f, "{}", &s),
             Io(ref err) => err.fmt(f),
-            TomlError(ref err) => err.fmt(f),
+            SerdeError(ref err) => err.fmt(f),
         }
     }
 }
@@ -29,7 +29,7 @@ impl Error for UpgradeError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match *self {
             Io(ref err) => Some(err),
-            TomlError(ref err) => Some(err),
+            SerdeError(ref err) => Some(err),
             _ => None
         }
     }
@@ -47,8 +47,8 @@ impl From<io::Error> for UpgradeError {
     }
 }
 
-impl From<toml::de::Error> for UpgradeError {
-    fn from(err: toml::de::Error) -> UpgradeError {
-        UpgradeError::TomlError(err)
+impl From<serde_json::Error> for UpgradeError {
+    fn from(err: serde_json::Error) -> UpgradeError {
+        UpgradeError::SerdeError(err)
     }
 }

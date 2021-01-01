@@ -8,7 +8,6 @@
 extern crate semver;
 extern crate serde_json;
 extern crate tempdir;
-extern crate toml;
 
 #[macro_use] extern crate log;
 extern crate env_logger;

@@ -74,10 +74,7 @@ impl CrateVersion {
 
     /// Returns true if the package source is Crates.io
     pub fn is_cratesio(&self) -> bool {
-        match self.source {
-            CratesIo => true,
-            _ => false,
-        }
+        matches!(self.source, CratesIo)
     }
 
     /// True if new remote version is available.
@@ -252,7 +249,7 @@ fn parse_cratesio<'a, S>(cratename: S) -> Result<String> where S: Into<Cow<'a,st
     let cratename = cratename.into();
     let input = cmd_return(&["cargo", "search", cratename.as_ref()]);
     let line = match input.lines()
-            .filter(|x| x.starts_with(&format!("{} ", cratename))).nth(0) {
+            .find(|x| x.starts_with(&format!("{} ", cratename))) {
         Some(line) => line,
         None => return Err(UpgradeError::NoCrate(cratename.into_owned())),
     };
