@@ -17,7 +17,7 @@ mod crateversion;
 mod config;
 mod error;
 
-use clap::{App, Arg, AppSettings, SubCommand};
+use clap::{Command};
 
 use std::path::PathBuf;
 
@@ -28,27 +28,27 @@ use crate::error::UpgradeError;
 
 fn main() {
     env_logger::init();
+    
 
-    let m = App::new("cargo-install-upgrade")
+    let m = Command::new("cargo-install-upgrade")
         .author("hecal3")
         .about("Updates crates installed with cargo install")
-        .version(&*format!("v{}", crate_version!()))
+        .version("1.0.7")
         .bin_name("cargo")
-        .settings(&[AppSettings::GlobalVersion,
-                    AppSettings::SubcommandRequired])
-        .subcommand(SubCommand::with_name("install-upgrade")
+        .propagate_version(true)
+        .subcommand_required(true)
+        .subcommand(Command::new("install-upgrade")
             .about("Updates crates installed with cargo install")
-            .args_from_usage(
-                "-p, --packages [PKG]...   'Crates to upgrade (defaults to all)'
-                -f, --force                'Force a reinstall of git/local packages'
-                -v, --verbose              'Verbose output'
-                -c, --cargo [DIR]          'Path to Cargo home directory'
-                -d, --dry-run              'Do not perform actual upgrades'")
-            .arg(Arg::from_usage(
-                "-e, --exclude [PKG]...    'Crates to exclude'")
-                .conflicts_with("packages")
-                    ))
-        .get_matches();
+            .args(&[
+               arg!(-p --packages [PKG]...   "Crates to upgrade (defaults to all)"),
+               arg!(-f --force               "Force a reinstall of git/local packages"),
+               arg!(-v --verbose             "Verbose output"),
+               arg!(-c --cargo [DIR]         "Path to Cargo home directory"),
+               arg!(-d --dry-run             "Do not perform actual upgrades'"),
+               arg!(-e -exclude [PKG]        "crates to exclude").conflicts_with("package")
+            ])
+        ).get_matches();
+
 
     if let Some(m) = m.subcommand_matches("install-upgrade") {
         let mode = match (m.values_of_lossy("packages"), m.values_of_lossy("exclude")) {
