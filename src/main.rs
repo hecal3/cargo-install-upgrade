@@ -17,7 +17,7 @@ mod crateversion;
 mod config;
 mod error;
 
-use clap::{Command};
+use clap::Command;
 
 use std::path::PathBuf;
 
