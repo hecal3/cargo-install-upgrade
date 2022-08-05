@@ -1,10 +1,18 @@
 [package]
 name = "cargo-install-upgrade"
-version = "1.0.9"
+version = "1.0.10"
 authors = ["hecal3 <hecal3@users.noreply.github.com>"]
 keywords = ["cargo", "subcommand", "install", "upgrade"]
 description = "Extends cargo to upgrade packages installed via 'cargo install'"
 edition = "2018"
+
+
+[profile.release]
+strip = true  # Automatically strip symbols from the binary.
+lto = true # ~40kb
+codegen-units = 1 # ~2kb
+#panic = "abort" # ~12kb not for tempfiles
+
 
 [[bin]]
 name = "cargo-install-upgrade"
