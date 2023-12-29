@@ -33,7 +33,7 @@ fn main() {
     let m = Command::new("cargo-install-upgrade")
         .author("hecal3")
         .about("Updates crates installed with cargo install")
-        .version("1.0.12")
+        .version("1.0.13")
         .bin_name("cargo")
         .propagate_version(true)
         .subcommand_required(true)
@@ -51,23 +51,24 @@ fn main() {
 
 
     if let Some(m) = m.subcommand_matches("install-upgrade") {
-        let mode = match (m.values_of_lossy("packages"), m.values_of_lossy("exclude")) {
+
+        let mode = match (m.get_many::<String>("packages"), m.get_many::<String>("exclude")) {
             (None, None) => PackageMode::All,
-            (Some(m), None) => PackageMode::Include(m),
-            (None, Some(m)) => PackageMode::Exclude(m),
+            (Some(m), None) => PackageMode::Include(m.map(|s| String::from(s)).collect()),
+            (None, Some(m)) => PackageMode::Exclude(m.map(|s| String::from(s)).collect()),
             (Some(_), Some(_)) => unreachable!(),
         };
 
-        let home = match m.value_of("cargo") {
+        let home = match m.get_one::<String>("cargo").map(|s| s.as_str()) {
             Some(val) => Some(PathBuf::from(val)),
             None => search_cargo_data(),
         };
 
         if let Some(home) = home {
             let cfg = Config {
-                upgrade: !m.is_present("dry-run"),
-                force: m.is_present("force"),
-                verbose: m.is_present("verbose"),
+                upgrade: !m.contains_id("dry-run"),
+                force: m.contains_id("force"),
+                verbose: m.contains_id("verbose"),
                 mode,
                 cpath: home,
             };
