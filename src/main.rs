@@ -33,7 +33,7 @@ fn main() {
     let m = Command::new("cargo-install-upgrade")
         .author("hecal3")
         .about("Updates crates installed with cargo install")
-        .version("1.0.13")
+        .version("1.0.14")
         .bin_name("cargo")
         .propagate_version(true)
         .subcommand_required(true)
@@ -66,9 +66,9 @@ fn main() {
 
         if let Some(home) = home {
             let cfg = Config {
-                upgrade: !m.contains_id("dry-run"),
-                force: m.contains_id("force"),
-                verbose: m.contains_id("verbose"),
+                upgrade: !m.get_one::<bool>("dry-run").map_or_else(|| false, |b| *b),
+                force: m.get_one::<bool>("force").map_or_else(|| false, |b| *b),
+                verbose: m.get_one::<bool>("verbose").map_or_else(|| false, |b| *b),
                 mode,
                 cpath: home,
             };

@@ -73,7 +73,7 @@ checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 
 [[package]]
 name = "cargo-install-upgrade"
-version = "1.0.13"
+version = "1.0.14"
 dependencies = [
  "clap",
  "dirs",
