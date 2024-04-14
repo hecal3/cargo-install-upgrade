@@ -33,7 +33,7 @@ fn main() {
     let m = Command::new("cargo-install-upgrade")
         .author("hecal3")
         .about("Updates crates installed with cargo install")
-        .version("1.0.15")
+        .version("1.0.16")
         .bin_name("cargo")
         .propagate_version(true)
         .subcommand_required(true)
@@ -54,8 +54,8 @@ fn main() {
 
         let mode = match (m.get_many::<String>("packages"), m.get_many::<String>("exclude")) {
             (None, None) => PackageMode::All,
-            (Some(m), None) => PackageMode::Include(m.map(|s| String::from(s)).collect()),
-            (None, Some(m)) => PackageMode::Exclude(m.map(|s| String::from(s)).collect()),
+            (Some(m), None) => PackageMode::Include(m.map(String::from).collect()),
+            (None, Some(m)) => PackageMode::Exclude(m.map(String::from).collect()),
             (Some(_), Some(_)) => unreachable!(),
         };
 
