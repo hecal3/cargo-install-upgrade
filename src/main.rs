@@ -33,7 +33,7 @@ fn main() {
     let m = Command::new("cargo-install-upgrade")
         .author("hecal3")
         .about("Updates crates installed with cargo install")
-        .version("1.0.16")
+        .version("1.0.17")
         .bin_name("cargo")
         .propagate_version(true)
         .subcommand_required(true)

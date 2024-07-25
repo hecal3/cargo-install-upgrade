@@ -1,6 +1,6 @@
 [package]
 name = "cargo-install-upgrade"
-version = "1.0.16"
+version = "1.0.17"
 authors = ["hecal3 <hecal3@users.noreply.github.com>"]
 keywords = ["cargo", "subcommand", "install", "upgrade"]
 description = "Extends cargo to upgrade packages installed via 'cargo install'"

@@ -15,7 +15,7 @@ pub enum UpgradeError {
 impl Display for UpgradeError {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match *self {
-            Parse(..) => write!(f, "Parse Error"),
+            Parse(ref s) => write!(f, "Parse Error {}", &s),
             NoCrate(ref s) => write!(f, "{}", &s),
             Gen(ref s) => write!(f, "{}", &s),
             Io(ref err) => err.fmt(f),
