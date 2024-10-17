@@ -21,7 +21,6 @@ use clap::Command;
 
 use std::path::PathBuf;
 
-use crate::crateversion::CrateVersion;
 use crate::config::*;
 use crate::util::*;
 use crate::error::UpgradeError;
@@ -33,7 +32,7 @@ fn main() {
     let m = Command::new("cargo-install-upgrade")
         .author("hecal3")
         .about("Updates crates installed with cargo install")
-        .version("1.0.18")
+        .version("1.0.19")
         .bin_name("cargo")
         .propagate_version(true)
         .subcommand_required(true)
@@ -82,7 +81,7 @@ fn main() {
 
 fn execute(cfg: Config) {
     info!("Searc for packages");
-    let mut installed: Vec<CrateVersion> = read_installed_packages(&cfg).unwrap();
+    let Ok(mut installed) = read_installed_packages(&cfg) else { return };
     info!("Found packages: {:?}", installed);
 
     match cfg.mode {
