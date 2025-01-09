@@ -12,7 +12,6 @@ use crate::crateversion::{CrateVersion,Result};
 use serde_json::Value;
 
 pub fn cmd_run(cmd: &[&str], verbose: bool) -> bool {
-    info!("run command: {:?}", cmd);
     info!("run command: {}", cmd.join(" "));
     let mut command = Command::new(cmd[0]);
     command.args(&cmd[1..]);

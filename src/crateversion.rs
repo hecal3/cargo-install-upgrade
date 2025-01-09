@@ -245,15 +245,17 @@ impl fmt::Display for CrateVersion {
         match self.source {
             CratesIo => {
                 write!(f,
-                       "{} ({}) -> ({})",
+                       "{} [{}] ({}) -> ({})",
                        self.name,
+                       self.features.join(","),
                        self.version,
                        self.remote_version)
             }
             Git{ref url, ref commit, ref remote_commit} => {
                 write!(f,
-                       "{} ({}):{} -> ({}):{} {}",
+                       "{} [{}] ({}):{} -> ({}):{} {}",
                        self.name,
+                       self.features.join(","),
                        self.version,
                        commit,
                        self.remote_version,
@@ -262,8 +264,9 @@ impl fmt::Display for CrateVersion {
             }
             Local{ path: ref p} => {
                 write!(f,
-                       "{} ({}) -> ({}) {}",
+                       "{} [{}] ({}) -> ({}) {}",
                        self.name,
+                       self.features.join(","),
                        self.version,
                        self.remote_version,
                        p.display())
