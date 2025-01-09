@@ -32,7 +32,7 @@ fn main() {
     let m = Command::new("cargo-install-upgrade")
         .author("hecal3")
         .about("Updates crates installed with cargo install")
-        .version("1.0.20")
+        .version("1.0.21")
         .bin_name("cargo")
         .propagate_version(true)
         .subcommand_required(true)
@@ -43,8 +43,8 @@ fn main() {
                arg!(-f --force               "Force a reinstall of git/local packages"),
                arg!(-v --verbose             "Verbose output"),
                arg!(-c --cargo [DIR]         "Path to Cargo home directory"),
-               arg!(-d --dry-run             "Do not perform actual upgrades'"),
-               arg!(-e -exclude [PKG]        "crates to exclude").conflicts_with("package")
+               arg!(-d --dryrun              "Do not perform actual upgrades'"),
+               arg!(-e --exclude [PKG]...    "crates to exclude").conflicts_with("packages")
             ])
         ).get_matches();
 
@@ -65,7 +65,7 @@ fn main() {
 
         if let Some(home) = home {
             let cfg = Config {
-                upgrade: !m.get_one::<bool>("dry-run").map_or_else(|| false, |b| *b),
+                upgrade: !m.get_one::<bool>("dryrun").map_or_else(|| false, |b| *b),
                 force: m.get_one::<bool>("force").map_or_else(|| false, |b| *b),
                 verbose: m.get_one::<bool>("verbose").map_or_else(|| false, |b| *b),
                 mode,
@@ -100,7 +100,7 @@ fn execute(cfg: Config) {
         debug!("after: {}", crate_version);
 
         match (crate_version.new_remote_version(), cfg.force, crate_version.is_cratesio()) {
-            (true,_,_) | (_,true,false) => crate_version.upgrade(&cfg),
+            (true,_,_) | (_,true,_) => crate_version.upgrade(&cfg),
             (false,false,false) =>
                 println!("{} is a local/git package. Force an upgrade with -f", crate_version),
             _ => println!("{} is up to date.", crate_version),

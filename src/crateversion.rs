@@ -36,6 +36,7 @@ pub struct CrateVersion {
     pub remote_version: Version,
     pub source: PackageSource,
     pub binaries: Vec<PathBuf>,
+    pub features: Vec<String>,
 }
 
 impl CrateVersion {
@@ -46,6 +47,7 @@ impl CrateVersion {
             remote_version: ver,
             source: CratesIo,
             binaries: Vec::new(),
+            features: Vec::new(),
         }
     }
 
@@ -70,6 +72,11 @@ impl CrateVersion {
     /// Sets binaries
     pub fn set_binaries(&mut self, bin: &[PathBuf]) {
         self.binaries.extend_from_slice(bin);
+    }
+
+    /// Sets binaries
+    pub fn set_features(&mut self, feat: &[String]) {
+        self.features.extend_from_slice(feat);
     }
 
     /// Returns true if the package source is Crates.io
@@ -154,11 +161,20 @@ impl CrateVersion {
 
     fn install(&self) -> bool {
         info!("Install {}", self.name);
-        let args = match self.source {
+        let mut args = match self.source {
             CratesIo => vec!["cargo", "install", &self.name],
             Git{ref url, ..} => vec!["cargo", "install", "--git", &url],
             Local{ref path} => vec!["cargo", "install", "--path", path.to_str().unwrap()],
         };
+
+        let str: String;
+        if !self.features.is_empty() {
+            args.push("--features");
+            let f = &self.features;
+            str = f.join(",");
+            debug!("feat {:?}", str);
+            args.push(str.as_str());
+        }
         cmd_run(&args, true)
     }
 

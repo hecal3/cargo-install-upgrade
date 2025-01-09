@@ -12,6 +12,7 @@ use crate::crateversion::{CrateVersion,Result};
 use serde_json::Value;
 
 pub fn cmd_run(cmd: &[&str], verbose: bool) -> bool {
+    info!("run command: {:?}", cmd);
     info!("run command: {}", cmd.join(" "));
     let mut command = Command::new(cmd[0]);
     command.args(&cmd[1..]);
@@ -110,6 +111,18 @@ pub fn read_installed_packages(cfg: &Config) -> Result<Vec<CrateVersion>> {
                 }
             }
             topush.set_binaries(&paths_binaries);
+        }
+
+
+
+        if let Some(features) = details["features"].as_array() {
+            let mut feature_list = Vec::new();
+            for binaryvalue in features {
+                if let Some(binarystr) = binaryvalue.as_str() {
+                    feature_list.push(String::from(binarystr));
+                }
+                topush.set_features(&feature_list);
+            }
         }
 
         debug!("{:?}", topush);
