@@ -1,10 +1,10 @@
 [package]
 name = "cargo-install-upgrade"
-version = "1.0.22"
+version = "1.0.23"
 authors = ["hecal3 <hecal3@users.noreply.github.com>"]
 keywords = ["cargo", "subcommand", "install", "upgrade"]
 description = "Extends cargo to upgrade packages installed via 'cargo install'"
-edition = "2021"
+edition = "2024"
 
 
 [profile.release]
@@ -24,4 +24,4 @@ serde_json = "1"
 tempdir = "0.3"
 log = "*"
 env_logger = "*"
-dirs = "5"
+dirs = "6"
